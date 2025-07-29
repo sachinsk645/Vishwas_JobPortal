@@ -29,6 +29,9 @@ import ProfilePage from './pages/ProfilePage';
 import NotFoundPage from './pages/NotFoundPage';
 import ViewAllApplicationsPage from './pages/recruiter/ViewAllApplicationsPage';
 import ScheduleInterviewPage from './pages/recruiter/ScheduleInterviewPage';
+import InterviewManagementPage from './pages/recruiter/InterviewManagementPage';
+import NewRecruiterPage from './pages/recruiter/NewRecruiterPage';
+import UpgradePlanPage from './pages/recruiter/UpgradePlanPage';
 import AddCandidatePage from './pages/recruiter/AddCandidatePage';
 import ScheduleNewInterviewPage from './pages/recruiter/ScheduleNewInterviewPage';
 import ReviewNewApplicationsPage from './pages/recruiter/ReviewNewApplicationsPage';
@@ -102,6 +105,9 @@ const AppContent = () => {
         <Route path="/recruiter-admin/post-job" element={<PostNewJobPage />} />
         <Route path="/recruiter-admin/applications" element={<ViewAllApplicationsPage />} />
         <Route path="/recruiter-admin/schedule-interview" element={<ScheduleInterviewPage />} />
+        <Route path="/recruiter-admin/interview-management" element={<InterviewManagementPage />} />
+        <Route path="/recruiter-admin/new-recruiter" element={<NewRecruiterPage />} />
+        <Route path="/recruiter-admin/upgrade-plan" element={<UpgradePlanPage />} />
         <Route path="/recruiter-user" element={<RecruiterUserDashboard />} />
         <Route path="/recruiter-user/add-candidate" element={<AddCandidatePage />} />
         <Route path="/recruiter-user/schedule-interview" element={<ScheduleNewInterviewPage />} />

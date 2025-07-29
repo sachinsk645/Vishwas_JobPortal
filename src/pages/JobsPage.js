@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   MagnifyingGlassIcon,
@@ -51,6 +51,14 @@ const JobsPage = () => {
   const [page, setPage] = useState(1);
   const [saved, setSaved] = useState([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const searchParam = params.get('search') || '';
+    const locationParam = params.get('location') || '';
+    setSearch(searchParam);
+    setLocation(locationParam);
+  }, []);
 
   // Filter jobs
   let filteredJobs = allJobs.filter(job =>
@@ -123,20 +131,6 @@ const JobsPage = () => {
               />
             </div>
             <button type="submit" className="px-6 py-2 bg-primary-600 text-white rounded-lg font-semibold hover:bg-primary-700 w-full md:w-auto">Search Jobs</button>
-          </div>
-          <div className="flex flex-col md:flex-row gap-4">
-            <select value={industry} onChange={e => setIndustry(e.target.value)} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
-              {industries.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-            <select value={jobType} onChange={e => setJobType(e.target.value)} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
-              {jobTypes.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-            <select value={experience} onChange={e => setExperience(e.target.value)} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
-              {experienceLevels.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-            <select value={salary} onChange={e => setSalary(e.target.value)} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
-              {salaryRanges.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
           </div>
         </form>
         {/* Job Results */}

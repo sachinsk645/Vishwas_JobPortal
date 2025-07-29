@@ -25,6 +25,11 @@ const RecruiterAdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
+  const [jobSearch, setJobSearch] = useState('');
+  const [sortBy, setSortBy] = useState('jobId');
+  const [sortDir, setSortDir] = useState('asc');
+  const [departmentFilter, setDepartmentFilter] = useState('All Departments');
+  const [statusFilter, setStatusFilter] = useState('All Status');
 
   // Mock data for demonstration
   const dashboardStats = {
@@ -42,10 +47,10 @@ const RecruiterAdminDashboard = () => {
   ];
 
   const jobPostings = [
-    { id: 1, title: 'Senior Software Developer', department: 'Engineering', location: 'Bangalore', status: 'Published', applications: 23, datePosted: '2024-01-15' },
-    { id: 2, title: 'Marketing Manager', department: 'Marketing', location: 'Mumbai', status: 'Published', applications: 15, datePosted: '2024-01-14' },
-    { id: 3, title: 'UI/UX Designer', department: 'Design', location: 'Delhi', status: 'Draft', applications: 0, datePosted: '2024-01-13' },
-    { id: 4, title: 'Data Analyst', department: 'Analytics', location: 'Pune', status: 'Published', applications: 8, datePosted: '2024-01-12' }
+    { id: 1, jobId: 'J-2024-1001', title: 'Senior Software Developer', department: 'Engineering', location: 'Bangalore', status: 'Published', applications: 23, datePosted: '2024-01-15' },
+    { id: 2, jobId: 'J-2024-1002', title: 'Marketing Manager', department: 'Marketing', location: 'Mumbai', status: 'Published', applications: 15, datePosted: '2024-01-14' },
+    { id: 3, jobId: 'J-2024-1003', title: 'UI/UX Designer', department: 'Design', location: 'Delhi', status: 'Draft', applications: 0, datePosted: '2024-01-13' },
+    { id: 4, jobId: 'J-2024-1004', title: 'Data Analyst', department: 'Analytics', location: 'Pune', status: 'Published', applications: 8, datePosted: '2024-01-12' }
   ];
 
   const applications = [
@@ -60,6 +65,42 @@ const RecruiterAdminDashboard = () => {
     { id: 2, candidate: 'John Doe', job: 'Senior Software Developer', interviewer: 'Tech Lead', date: '2024-01-21', time: '2:00 PM', type: 'On-site', status: 'Scheduled' },
     { id: 3, candidate: 'Mike Johnson', job: 'UI/UX Designer', interviewer: 'Design Lead', date: '2024-01-19', time: '11:00 AM', type: 'Phone', status: 'Completed' }
   ];
+
+  let filteredJobPostings = jobPostings.filter(job => {
+    const keyword = jobSearch.toLowerCase();
+    const matchesDepartment = departmentFilter === 'All Departments' || job.department === departmentFilter;
+    const matchesStatus = statusFilter === 'All Status' || job.status === statusFilter;
+    return (
+      matchesDepartment && matchesStatus && (
+        job.jobId.toLowerCase().includes(keyword) ||
+        job.title.toLowerCase().includes(keyword) ||
+        job.department.toLowerCase().includes(keyword) ||
+        job.location.toLowerCase().includes(keyword) ||
+        job.status.toLowerCase().includes(keyword) ||
+        String(job.applications).toLowerCase().includes(keyword) ||
+        job.datePosted.toLowerCase().includes(keyword)
+      )
+    );
+  });
+
+  filteredJobPostings = filteredJobPostings.sort((a, b) => {
+    let valA = a[sortBy];
+    let valB = b[sortBy];
+    if (sortBy === 'applications') {
+      valA = Number(valA);
+      valB = Number(valB);
+    }
+    if (valA < valB) return sortDir === 'asc' ? -1 : 1;
+    if (valA > valB) return sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const renderSortArrow = (col) => {
+    if (sortBy === col) {
+      return sortDir === 'asc' ? ' ▲' : ' ▼';
+    }
+    return ' △'; // faded/outline arrow for inactive columns
+  };
 
   const renderDashboard = () => (
     <div className="space-y-6">
@@ -114,16 +155,16 @@ const RecruiterAdminDashboard = () => {
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+      {/* Quick Actions Section */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-4">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           <button 
             onClick={() => navigate('/recruiter-admin/post-job')}
             className="flex items-center justify-center px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm"
           >
             <PlusIcon className="h-4 w-4 mr-1" />
-            Post New Job
+            Add new Job
           </button>
           <button 
             onClick={() => navigate('/recruiter-admin/applications')}
@@ -137,6 +178,19 @@ const RecruiterAdminDashboard = () => {
             <CalendarIcon className="h-4 w-4 mr-1" />
             Schedule Interview
           </button>
+          <button 
+            onClick={() => navigate('/recruiter-admin/interview-management')}
+            className="flex items-center justify-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm">
+            <EyeIcon className="h-4 w-4 mr-1" />
+            Interview List
+          </button>
+
+        </div>
+      </div>
+      {/* User Actions Section */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">User Actions</h3>
+        <div className="flex gap-3">
           <button 
             onClick={() => navigate('/recruiter-admin/add-user')}
             className="flex items-center justify-center px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm"
@@ -173,6 +227,142 @@ const RecruiterAdminDashboard = () => {
           ))}
         </div>
       </div>
+
+      {/* My Job Postings Section */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">My Job Postings</h3>
+          <button
+            className="flex items-center px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm"
+            onClick={() => navigate('/recruiter-admin/post-job')}
+          >
+            <PlusIcon className="h-4 w-4 mr-1" />
+            Post New Job
+          </button>
+        </div>
+
+        {/* Search and Filter */}
+        <div className="mb-4">
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="flex-1">
+              <div className="relative">
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search my jobs..."
+                  value={jobSearch}
+                  onChange={e => setJobSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                />
+              </div>
+            </div>
+            <select
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+            >
+              <option>All Status</option>
+              <option>Published</option>
+              <option>Draft</option>
+              <option>Archived</option>
+            </select>
+            <select
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+              value={departmentFilter}
+              onChange={e => setDepartmentFilter(e.target.value)}
+            >
+              <option>All Locations</option>
+              <option>Bangalore</option>
+              <option>Mumbai</option>
+              <option>Delhi</option>
+              <option>Pune</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Jobs Table */}
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job Title</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applications</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Posted</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredJobPostings.slice(0, 4).map((job) => (
+                <tr key={job.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">{job.title}</div>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{job.department}</div>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{job.location}</div>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      job.status === 'Published' ? 'bg-green-100 text-green-800' :
+                      job.status === 'Draft' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {job.status === 'Published' ? 'Open' : job.status === 'Draft' ? 'Draft' : 'Closed'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{job.applications}</div>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{job.datePosted}</div>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
+                    <div className="flex space-x-2">
+                      <button className="text-blue-600 hover:text-blue-900" title="View">
+                        <EyeIcon className="h-4 w-4" />
+                      </button>
+                      <button className="text-blue-600 hover:text-blue-900" title="Edit">
+                        <PencilIcon className="h-4 w-4" />
+                      </button>
+                      <button className="text-red-600 hover:text-red-900" title="Delete">
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {filteredJobPostings.length === 0 && (
+          <div className="text-center py-8">
+            <BriefcaseIcon className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No job postings found</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {jobSearch || statusFilter !== 'All Status' || departmentFilter !== 'All Locations'
+                ? 'Try adjusting your search or filter criteria.'
+                : 'Get started by creating your first job posting.'}
+            </p>
+          </div>
+        )}
+
+        {filteredJobPostings.length > 4 && (
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => setActiveTab('jobPostings')}
+              className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+            >
+              View all job postings →
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 
@@ -181,7 +371,10 @@ const RecruiterAdminDashboard = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Job Postings</h2>
-        <button className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+        <button
+          className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+          onClick={() => navigate('/recruiter-admin/post-job')}
+        >
           <PlusIcon className="h-5 w-5 mr-2" />
           Post New Job
         </button>
@@ -196,19 +389,29 @@ const RecruiterAdminDashboard = () => {
                <input
                  type="text"
                  placeholder="Search jobs..."
+                 value={jobSearch}
+                 onChange={e => setJobSearch(e.target.value)}
                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                />
              </div>
            </div>
           <div className="flex gap-2">
-            <select className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+            <select
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              value={departmentFilter}
+              onChange={e => setDepartmentFilter(e.target.value)}
+            >
               <option>All Departments</option>
               <option>Engineering</option>
               <option>Marketing</option>
               <option>Design</option>
               <option>Analytics</option>
             </select>
-            <select className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+            <select
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+            >
               <option>All Status</option>
               <option>Published</option>
               <option>Draft</option>
@@ -224,18 +427,20 @@ const RecruiterAdminDashboard = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job Title</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applications</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Posted</th>
+                <th className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer${sortBy === 'jobId' ? ' font-bold' : ''}`} onClick={() => { setSortBy('jobId'); setSortDir(sortBy === 'jobId' && sortDir === 'asc' ? 'desc' : 'asc'); }}>Job ID{renderSortArrow('jobId')}</th>
+                <th className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer${sortBy === 'title' ? ' font-bold' : ''}`} onClick={() => { setSortBy('title'); setSortDir(sortBy === 'title' && sortDir === 'asc' ? 'desc' : 'asc'); }}>Job Title{renderSortArrow('title')}</th>
+                <th className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer${sortBy === 'department' ? ' font-bold' : ''}`} onClick={() => { setSortBy('department'); setSortDir(sortBy === 'department' && sortDir === 'asc' ? 'desc' : 'asc'); }}>Department{renderSortArrow('department')}</th>
+                <th className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer${sortBy === 'location' ? ' font-bold' : ''}`} onClick={() => { setSortBy('location'); setSortDir(sortBy === 'location' && sortDir === 'asc' ? 'desc' : 'asc'); }}>Location{renderSortArrow('location')}</th>
+                <th className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer${sortBy === 'status' ? ' font-bold' : ''}`} onClick={() => { setSortBy('status'); setSortDir(sortBy === 'status' && sortDir === 'asc' ? 'desc' : 'asc'); }}>Status{renderSortArrow('status')}</th>
+                <th className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer${sortBy === 'applications' ? ' font-bold' : ''}`} onClick={() => { setSortBy('applications'); setSortDir(sortBy === 'applications' && sortDir === 'asc' ? 'desc' : 'asc'); }}>Applications{renderSortArrow('applications')}</th>
+                <th className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer${sortBy === 'datePosted' ? ' font-bold' : ''}`} onClick={() => { setSortBy('datePosted'); setSortDir(sortBy === 'datePosted' && sortDir === 'asc' ? 'desc' : 'asc'); }}>Date Posted{renderSortArrow('datePosted')}</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {jobPostings.map((job) => (
+              {filteredJobPostings.map((job) => (
                 <tr key={job.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{job.jobId}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{job.title}</div>
                   </td>

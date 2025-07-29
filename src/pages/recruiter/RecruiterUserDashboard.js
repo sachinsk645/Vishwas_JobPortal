@@ -166,7 +166,7 @@ const RecruiterUserDashboard = () => {
               onClick={() => navigate('/recruiter-user/add-candidate')}
               className="flex items-center justify-center px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm">
               <PlusIcon className="h-4 w-4 mr-1" />
-              Add New Candidate
+              Add new Job
             </button>
             <button 
               onClick={() => navigate('/recruiter-user/review-new-applications')}

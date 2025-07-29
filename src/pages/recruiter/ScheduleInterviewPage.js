@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   CalendarIcon,
@@ -63,6 +63,11 @@ const ScheduleInterviewPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState('');
 
+  // Section refs
+  const candidateJobRef = useRef(null);
+  const interviewDetailsRef = useRef(null);
+  const locationOrLinkRef = useRef(null);
+
   // Helper functions
   const selectedCandidate = candidates.find(c => c.id === Number(formData.candidateId));
   const availableJobs = selectedCandidate ? jobs.filter(j => j.id === selectedCandidate.jobId) : jobs;
@@ -100,41 +105,63 @@ const ScheduleInterviewPage = () => {
     if (formData.type === 'Video Call' && !formData.locationOrLink) newErrors.locationOrLink = 'Video link is required';
     if (formData.type === 'Phone Call' && !formData.locationOrLink) newErrors.locationOrLink = 'Instructions/notes are required';
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length > 0) {
+      // Scroll to first error section
+      if (newErrors.candidateId || newErrors.jobId) {
+        candidateJobRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if (newErrors.interviewers || newErrors.date || newErrors.time || newErrors.duration || newErrors.type) {
+        interviewDetailsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if (newErrors.locationOrLink) {
+        locationOrLinkRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return; // Don't proceed with scheduling if there are errors
+    }
     setIsSubmitting(true);
     setTimeout(() => {
       setIsSubmitting(false);
       setSuccess(`Interview with ${selectedCandidate?.name || 'candidate'} scheduled for ${formData.date} at ${formData.time}!`);
-      setTimeout(() => navigate('/recruiter-admin/interviews'), 2000);
+      setTimeout(() => navigate('/recruiter-admin'), 2000);
     }, 1500);
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header & Breadcrumbs */}
+      {/* Navigation Bar */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
+            {/* Left side - Logo and Portal Name */}
             <div className="flex items-center">
-              <Link to="/recruiter-admin" className="flex items-center text-gray-500 hover:text-gray-700">
+              <div className="flex items-center mr-8">
+                <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center mr-3">
+                  <span className="text-white font-bold text-lg">V</span>
+                </div>
+                <span className="text-xl font-bold text-gray-900">VishwasJobPortal</span>
+              </div>
+            </div>
+            
+            {/* Right side - Back to Dashboard */}
+            <div className="flex items-center">
+              <Link to="/recruiter-admin" className="flex items-center text-gray-500 hover:text-gray-700 transition-colors">
                 <ArrowLeftIcon className="h-5 w-5 mr-2" />
                 Back to Dashboard
               </Link>
             </div>
-            <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-semibold text-gray-900">Schedule Interview</h1>
-            </div>
           </div>
         </div>
       </div>
-      {/* Breadcrumbs */}
+      {/* Page Title and Breadcrumbs */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="text-2xl font-bold text-gray-900">Schedule Interview</h1>
+          </div>
           <nav className="flex" aria-label="Breadcrumb">
             <ol className="flex items-center space-x-4">
               <li>
@@ -164,7 +191,7 @@ const ScheduleInterviewPage = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Candidate & Job Info */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div ref={candidateJobRef} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
               <UserIcon className="h-5 w-5 mr-2 text-primary-600" />
               Candidate & Job Information
@@ -217,7 +244,7 @@ const ScheduleInterviewPage = () => {
             </div>
           </div>
           {/* Interview Details */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div ref={interviewDetailsRef} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
               <CalendarIcon className="h-5 w-5 mr-2 text-primary-600" />
               Interview Details
@@ -304,7 +331,7 @@ const ScheduleInterviewPage = () => {
               </div>
               {/* Location/Link/Instructions */}
               {formData.type && (
-                <div className="md:col-span-2">
+                <div ref={locationOrLinkRef} className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {formData.type === 'On-site' && 'Location (Address/Room) *'}
                     {formData.type === 'Video Call' && 'Video Conference Link *'}
@@ -390,12 +417,12 @@ const ScheduleInterviewPage = () => {
             </div>
           </div>
           {/* Error Message */}
-          {Object.keys(errors).length > 0 && (
+          {Object.values(errors).filter(Boolean).length > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <div className="flex">
                 <XMarkIcon className="h-5 w-5 text-red-400" />
                 <div className="ml-3 text-sm text-red-600">
-                  {Object.values(errors).map((err, i) => <div key={i}>{err}</div>)}
+                  {Object.values(errors).filter(Boolean).map((err, i) => <div key={i}>{err}</div>)}
                 </div>
               </div>
             </div>

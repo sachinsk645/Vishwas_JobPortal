@@ -39,6 +39,8 @@ import {
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [jobSearch, setJobSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All Status');
 
   // Mock data for demonstration
   const adminName = "Admin User";
@@ -363,6 +365,23 @@ const AdminDashboard = () => {
     </div>
   );
 
+  // Filter job postings based on search and status
+  const filteredJobPostings = jobPostings.filter(job => {
+    const searchTerm = jobSearch.toLowerCase();
+    const matchesSearch = 
+      job.title.toLowerCase().includes(searchTerm) ||
+      job.company.toLowerCase().includes(searchTerm) ||
+      job.recruiter.toLowerCase().includes(searchTerm) ||
+      job.location.toLowerCase().includes(searchTerm) ||
+      job.status.toLowerCase().includes(searchTerm) ||
+      job.applications.toString().includes(searchTerm) ||
+      job.datePosted.toLowerCase().includes(searchTerm);
+    
+    const matchesStatus = statusFilter === 'All Status' || job.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
   const renderJobPostings = () => (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900">Job Postings Management</h2>
@@ -375,17 +394,23 @@ const AdminDashboard = () => {
               <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search jobs..."
+                placeholder="Search any keyword..."
+                value={jobSearch}
+                onChange={(e) => setJobSearch(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
           </div>
-          <select className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-            <option>All Status</option>
-            <option>Published</option>
-            <option>Pending Review</option>
-            <option>Rejected</option>
-            <option>Archived</option>
+          <select 
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          >
+            <option value="All Status">All Status</option>
+            <option value="Published">Published</option>
+            <option value="Pending Review">Pending Review</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Archived">Archived</option>
           </select>
           <button className="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition-colors">
             Approval Queue (3)
@@ -409,7 +434,7 @@ const AdminDashboard = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {jobPostings.map((job) => (
+              {filteredJobPostings.map((job) => (
                 <tr key={job.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{job.title}</div>

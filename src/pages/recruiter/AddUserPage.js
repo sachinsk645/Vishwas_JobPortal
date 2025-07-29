@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   UserIcon,
@@ -17,6 +17,7 @@ import BackButton from '../../components/common/BackButton';
 const AddUserPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
+    userId: '',
     firstName: '',
     lastName: '',
     email: '',
@@ -36,6 +37,12 @@ const AddUserPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    // Generate a random User ID (e.g., U-2024-XXXX)
+    const randomId = `U-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    setFormData(prev => ({ ...prev, userId: randomId }));
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -199,6 +206,17 @@ const AddUserPage = () => {
             {/* User Information */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">User Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">User ID</label>
+                  <input
+                    type="text"
+                    value={formData.userId}
+                    readOnly
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
+                  />
+                </div>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -395,52 +413,56 @@ const AddUserPage = () => {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Permissions</h3>
               <div className="space-y-3">
                 <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="permissions.canPostJobs"
-                    checked={formData.permissions.canPostJobs}
-                    onChange={handleInputChange}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                  />
-                  <label className="ml-3 text-sm text-gray-700">
-                    Can Post Jobs
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="canPostJobs"
+                      name="permissions.canPostJobs"
+                      checked={formData.permissions.canPostJobs}
+                      onChange={handleInputChange}
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    />
+                    <span className="ml-3 text-sm text-gray-700">Can Post Jobs</span>
                   </label>
                 </div>
                 <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="permissions.canViewAllApplications"
-                    checked={formData.permissions.canViewAllApplications}
-                    onChange={handleInputChange}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                  />
-                  <label className="ml-3 text-sm text-gray-700">
-                    Can View All Applications
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="canViewAllApplications"
+                      name="permissions.canViewAllApplications"
+                      checked={formData.permissions.canViewAllApplications}
+                      onChange={handleInputChange}
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    />
+                    <span className="ml-3 text-sm text-gray-700">Can View All Applications</span>
                   </label>
                 </div>
                 <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="permissions.canScheduleInterviews"
-                    checked={formData.permissions.canScheduleInterviews}
-                    onChange={handleInputChange}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                  />
-                  <label className="ml-3 text-sm text-gray-700">
-                    Can Schedule Interviews
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="canScheduleInterviews"
+                      name="permissions.canScheduleInterviews"
+                      checked={formData.permissions.canScheduleInterviews}
+                      onChange={handleInputChange}
+                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    />
+                    <span className="ml-3 text-sm text-gray-700">Can Schedule Interviews</span>
                   </label>
                 </div>
                 {formData.role === 'Recruiter Admin' && (
                   <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      name="permissions.canManageTeamMembers"
-                      checked={formData.permissions.canManageTeamMembers}
-                      onChange={handleInputChange}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                    />
-                    <label className="ml-3 text-sm text-gray-700">
-                      Can Manage Team Members
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        id="canManageTeamMembers"
+                        name="permissions.canManageTeamMembers"
+                        checked={formData.permissions.canManageTeamMembers}
+                        onChange={handleInputChange}
+                        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                      />
+                      <span className="ml-3 text-sm text-gray-700">Can Manage Team Members</span>
                     </label>
                   </div>
                 )}

@@ -47,8 +47,8 @@ const mockApplications = [
   {
     id: 1,
     candidate: 'John Doe',
-    job: 'Senior Software Engineer',
-    jobId: 1,
+    job: 'Senior Software Developer',
+    jobId: 'J-2024-1001',
     recruiter: 'Sarah Johnson',
     recruiterId: 1,
     date: '2024-06-01T10:30:00',
@@ -60,7 +60,7 @@ const mockApplications = [
     id: 2,
     candidate: 'Jane Smith',
     job: 'Marketing Manager',
-    jobId: 2,
+    jobId: 'J-2024-1002',
     recruiter: 'Mike Chen',
     recruiterId: 2,
     date: '2024-06-02T14:15:00',
@@ -72,7 +72,7 @@ const mockApplications = [
     id: 3,
     candidate: 'Mike Johnson',
     job: 'UI/UX Designer',
-    jobId: 3,
+    jobId: 'J-2024-1003',
     recruiter: 'Lisa Wilson',
     recruiterId: 3,
     date: '2024-06-03T09:00:00',
@@ -115,7 +115,7 @@ const ViewAllApplicationsPage = () => {
     const matchesSearch =
       app.candidate.toLowerCase().includes(search.toLowerCase()) ||
       app.job.toLowerCase().includes(search.toLowerCase());
-    const matchesJob = !jobFilter || app.jobId === Number(jobFilter);
+    const matchesJob = !jobFilter || app.jobId.toLowerCase().includes(jobFilter.toLowerCase());
     const matchesStatus = !statusFilter || app.status === statusFilter;
     const matchesRecruiter = !recruiterFilter || app.recruiterId === Number(recruiterFilter);
     const matchesDate = (!dateFrom || new Date(app.date) >= new Date(dateFrom)) &&
@@ -184,25 +184,36 @@ const ViewAllApplicationsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header & Breadcrumbs */}
+      {/* Navigation Bar */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
+            {/* Left side - Logo and Portal Name */}
             <div className="flex items-center">
-              <Link to="/recruiter-admin" className="flex items-center text-gray-500 hover:text-gray-700">
+              <div className="flex items-center mr-8">
+                <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center mr-3">
+                  <span className="text-white font-bold text-lg">V</span>
+                </div>
+                <span className="text-xl font-bold text-gray-900">VishwasJobPortal</span>
+              </div>
+            </div>
+            
+            {/* Right side - Back to Dashboard */}
+            <div className="flex items-center">
+              <Link to="/recruiter-admin" className="flex items-center text-gray-500 hover:text-gray-700 transition-colors">
                 <ArrowLeftIcon className="h-5 w-5 mr-2" />
                 Back to Dashboard
               </Link>
             </div>
-            <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-semibold text-gray-900">All Applications</h1>
-            </div>
           </div>
         </div>
       </div>
-      {/* Breadcrumbs */}
+      {/* Page Title and Breadcrumbs */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="text-2xl font-bold text-gray-900">All Applications</h1>
+          </div>
           <nav className="flex" aria-label="Breadcrumb">
             <ol className="flex items-center space-x-4">
               <li>
@@ -250,7 +261,7 @@ const ViewAllApplicationsPage = () => {
             >
               <option value="">All Jobs</option>
               {jobs.map(job => (
-                <option key={job.id} value={job.id}>{job.title}</option>
+                <option key={job.id} value={job.title}>{job.title}</option>
               ))}
             </select>
             <select
@@ -308,7 +319,7 @@ const ViewAllApplicationsPage = () => {
               </div>
             )}
           </div>
-          <div>
+          <div className="flex items-center gap-2">
             <label className="text-sm text-gray-600 mr-2">Items per page:</label>
             <select
               value={itemsPerPage}
@@ -333,9 +344,8 @@ const ViewAllApplicationsPage = () => {
                     onChange={toggleSelectAll}
                   />
                 </th>
-                <th className="px-4 py-3 cursor-pointer" onClick={() => handleSort('candidate')}>
-                  <div className="flex items-center gap-1">Candidate Name {sortBy === 'candidate' && (sortDir === 'asc' ? <ChevronUpIcon className="h-4 w-4" /> : <ChevronDownIcon className="h-4 w-4" />)}</div>
-                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidate</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job ID</th>
                 <th className="px-4 py-3 cursor-pointer" onClick={() => handleSort('job')}>
                   <div className="flex items-center gap-1">Job Applied For {sortBy === 'job' && (sortDir === 'asc' ? <ChevronUpIcon className="h-4 w-4" /> : <ChevronDownIcon className="h-4 w-4" />)}</div>
                 </th>
@@ -376,6 +386,7 @@ const ViewAllApplicationsPage = () => {
                     <td className="px-4 py-3">
                       <button className="text-primary-600 hover:underline" onClick={() => navigate(`/candidate/${app.id}`)}>{app.candidate}</button>
                     </td>
+                    <td className="px-4 py-3 text-sm text-gray-700">{app.jobId}</td>
                     <td className="px-4 py-3">
                       <button className="text-primary-600 hover:underline" onClick={() => navigate(`/jobs/${app.jobId}`)}>{app.job}</button>
                     </td>

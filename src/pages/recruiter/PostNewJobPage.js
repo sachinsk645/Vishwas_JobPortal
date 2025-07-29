@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   BriefcaseIcon,
@@ -25,6 +25,7 @@ import {
 const PostNewJobPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
+    jobId: '',
     // Job Basics & Overview
     jobTitle: '',
     department: '',
@@ -64,6 +65,16 @@ const PostNewJobPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [skillInput, setSkillInput] = useState('');
+  const [showSavedPopup, setShowSavedPopup] = useState(false);
+
+  // Section refs
+  const basicsRef = useRef(null);
+  const salaryRef = useRef(null);
+  const descriptionRef = useRef(null);
+  const skillsRef = useRef(null);
+  const educationRef = useRef(null);
+  const applicationRef = useRef(null);
+  const externalUrlRef = useRef(null);
 
   // Predefined options
   const departments = ['Engineering', 'Marketing', 'Sales', 'Human Resources', 'Finance', 'Design', 'Product', 'Operations', 'Customer Support', 'Legal', 'Other'];
@@ -82,6 +93,12 @@ const PostNewJobPage = () => {
     { id: 2, name: 'Mike Chen', email: 'mike@company.com' },
     { id: 3, name: 'Lisa Wilson', email: 'lisa@company.com' }
   ];
+
+  useEffect(() => {
+    // Generate a random Job ID (e.g., J-2024-XXXX)
+    const randomId = `J-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    setFormData(prev => ({ ...prev, jobId: randomId }));
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -184,13 +201,21 @@ const PostNewJobPage = () => {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length > 0) {
+      // Scroll logic (already present)
+      if (newErrors.jobTitle || newErrors.department || newErrors.jobCategory || newErrors.experienceLevel || newErrors.jobLocation) basicsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      else if (newErrors.minSalary || newErrors.maxSalary) salaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      else if (newErrors.jobDescription) descriptionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      else if (newErrors.requiredSkills) skillsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      else if (newErrors.educationalQualifications) educationRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      else if (newErrors.externalUrl) externalUrlRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      else if (newErrors.applicationMethod) applicationRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
@@ -199,13 +224,15 @@ const PostNewJobPage = () => {
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Success - redirect to job postings
-      navigate('/recruiter-admin', { 
-        state: { 
-          message: `Job "${formData.jobTitle}" ${formData.jobStatus === 'Published' ? 'published' : 'saved'} successfully!` 
-        } 
-      });
+      setShowSavedPopup(true);
+      setTimeout(() => {
+        setShowSavedPopup(false);
+        navigate('/recruiter-admin', {
+          state: {
+            message: `Job "${formData.jobTitle}" ${formData.jobStatus === 'Published' ? 'published' : 'saved'} successfully!`
+          }
+        });
+      }, 2000);
     } catch (error) {
       setErrors({ submit: 'Failed to save job posting. Please try again.' });
     } finally {
@@ -220,26 +247,37 @@ const PostNewJobPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Navigation Bar */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
+            {/* Left side - Logo and Portal Name */}
             <div className="flex items-center">
-              <Link to="/recruiter-admin" className="flex items-center text-gray-500 hover:text-gray-700">
+              <div className="flex items-center mr-8">
+                <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center mr-3">
+                  <span className="text-white font-bold text-lg">V</span>
+                </div>
+                <span className="text-xl font-bold text-gray-900">VishwasJobPortal</span>
+              </div>
+            </div>
+            
+            {/* Right side - Back to Dashboard */}
+            <div className="flex items-center">
+              <Link to="/recruiter-admin" className="flex items-center text-gray-500 hover:text-gray-700 transition-colors">
                 <ArrowLeftIcon className="h-5 w-5 mr-2" />
                 Back to Dashboard
               </Link>
-            </div>
-            <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-semibold text-gray-900">Post New Job</h1>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Breadcrumbs */}
+      {/* Page Title and Breadcrumbs */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="text-2xl font-bold text-gray-900">Post New Job</h1>
+          </div>
           <nav className="flex" aria-label="Breadcrumb">
             <ol className="flex items-center space-x-4">
               <li>
@@ -271,11 +309,22 @@ const PostNewJobPage = () => {
         <form onSubmit={handleSubmit} className="space-y-8">
           
           {/* 1. Job Basics & Overview */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div ref={basicsRef} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
               <BriefcaseIcon className="h-5 w-5 mr-2 text-primary-600" />
               Job Basics & Overview
             </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Job ID</label>
+                <input
+                  type="text"
+                  value={formData.jobId}
+                  readOnly
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
+                />
+              </div>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Job Title */}
@@ -470,7 +519,7 @@ const PostNewJobPage = () => {
           </div>
 
           {/* 2. Salary & Compensation */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div ref={salaryRef} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
               <CurrencyDollarIcon className="h-5 w-5 mr-2 text-primary-600" />
               Salary & Compensation
@@ -501,7 +550,7 @@ const PostNewJobPage = () => {
 
               {/* Salary Range */}
               {formData.salaryType !== 'Not Disclosed' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div ref={salaryRef} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Minimum {formData.salaryType.includes('Annual') ? 'Salary' : 'Rate'} (INR) *
@@ -576,7 +625,7 @@ const PostNewJobPage = () => {
           </div>
 
           {/* 3. Job Description & Requirements */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div ref={descriptionRef} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
               <DocumentTextIcon className="h-5 w-5 mr-2 text-primary-600" />
               Job Description & Requirements
@@ -605,7 +654,7 @@ const PostNewJobPage = () => {
               </div>
 
               {/* Required Skills */}
-              <div>
+              <div ref={skillsRef}>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Required Skills *
                 </label>
@@ -651,7 +700,7 @@ const PostNewJobPage = () => {
               </div>
 
               {/* Educational Qualifications */}
-              <div>
+              <div ref={educationRef}>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Educational Qualifications *
                 </label>
@@ -674,7 +723,7 @@ const PostNewJobPage = () => {
           </div>
 
           {/* 4. Application Settings */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div ref={applicationRef} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
               <UserGroupIcon className="h-5 w-5 mr-2 text-primary-600" />
               Application Settings
@@ -714,7 +763,7 @@ const PostNewJobPage = () => {
 
               {/* External URL */}
               {formData.applicationMethod === 'Redirect to External Website' && (
-                <div>
+                <div ref={externalUrlRef}>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     External Website URL *
                   </label>
@@ -966,7 +1015,13 @@ const PostNewJobPage = () => {
           </div>
         </form>
       </div>
-
+      {/* Job Saved Popup */}
+      {showSavedPopup && (
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2 animate-fade-in">
+          <CheckIcon className="h-5 w-5 text-white" />
+          Job Saved
+        </div>
+      )}
       {/* Preview Modal */}
       {showPreview && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
